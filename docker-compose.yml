@@ -1,0 +1,30 @@
+version: '3.8'
+networks:
+  proxy:
+    external: true
+
+services:
+  svn_server:
+    image: wdmaster/subversion-ldap-httpd
+    # expose:
+    #   - 80
+    # ports:
+    #   - 8080:80
+    environment:
+      AuthLDAPURL: "ldap://example.com/ou=users,dc=example,dc=com?uid STARTTLS"
+      AuthLDAPBindDN: "cn=readonly,dc=example,dc=com"
+      AuthLDAPBindPassword: "PassW0rd"
+      RequireLDAPGroup: "cn=SVN_group_access,ou=groups,dc=example,dc=com"
+    volumes:
+      - svn_repo:/var/svn
+    networks:
+      - proxy
+    deploy:
+      placement:
+          constraints: [node.labels.id == 1]
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+volumes:
+  svn_repo: {}
